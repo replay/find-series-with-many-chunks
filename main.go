@@ -17,6 +17,7 @@ import (
 type seriesChunkCount struct {
 	Ref        uint64
 	Labels     labels.Labels
+	LabelText  string
 	ChunkCount int
 }
 
@@ -55,7 +56,7 @@ func run(stdout, stderr io.Writer, args []string) int {
 	tw := tabwriter.NewWriter(stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(tw, "chunk_count\tseries_ref\tlabels")
 	for _, result := range results {
-		fmt.Fprintf(tw, "%d\t%d\t%s\n", result.ChunkCount, result.Ref, result.Labels.String())
+		fmt.Fprintf(tw, "%d\t%d\t%s\n", result.ChunkCount, result.Ref, result.LabelText)
 	}
 	if err := tw.Flush(); err != nil {
 		fmt.Fprintln(stderr, err)
@@ -97,6 +98,7 @@ func topSeriesByChunkCount(path string, limit int) ([]seriesChunkCount, error) {
 		results = append(results, seriesChunkCount{
 			Ref:        ref,
 			Labels:     append(labels.Labels(nil), lset...),
+			LabelText:  lset.String(),
 			ChunkCount: len(chks),
 		})
 	}
@@ -108,8 +110,8 @@ func topSeriesByChunkCount(path string, limit int) ([]seriesChunkCount, error) {
 		if results[i].ChunkCount != results[j].ChunkCount {
 			return results[i].ChunkCount > results[j].ChunkCount
 		}
-		if results[i].Labels.String() != results[j].Labels.String() {
-			return results[i].Labels.String() < results[j].Labels.String()
+		if results[i].LabelText != results[j].LabelText {
+			return results[i].LabelText < results[j].LabelText
 		}
 		return results[i].Ref < results[j].Ref
 	})
